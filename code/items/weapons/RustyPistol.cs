@@ -1,0 +1,46 @@
+﻿using System;
+using Sandbox;
+namespace aurora.items.weapons
+{
+	[ Library ( "weapon_rust_pistol" , Title = "Rusty Pistol" , Spawnable = true ) ]
+	public partial class RustyPistol : Weapon
+	{
+		public override string ViewModelPath => "weapons/rust_pistol/v_rust_pistol.vmdl";
+		public override float PrimaryRate => 15.0f;
+		public override float SecondaryRate => 1.0f;
+		
+		private TimeSince TimeSinceDischarge { get; set; }
+		public override void Spawn ( )
+		{
+			base.Spawn ();
+			SetModel ( "weapons/rust_pistol/rust_pistol.vmdl" );
+		}
+		public override bool CanPrimaryAttack ( ) => base.CanPrimaryAttack () && Input.Pressed ( InputButton.Attack1 );
+		public override void AttackPrimary ( )
+		{
+			TimeSincePrimaryAttack = 0;
+			TimeSinceSecondaryAttack = 0;
+			( Owner as AnimEntity )?.SetAnimBool ( "b_attack" , true );
+			ShootEffects ();
+			PlaySound ( "rust_pistol.shoot" );
+			ShootBullet ( 0.05f , 1.5f , Rand.Int ( 30,60 ) , 3.0f );
+		}
+		private void Discharge ( )
+		{
+			if ( TimeSinceDischarge < 0.5f )
+				return;
+			TimeSinceDischarge = 0;
+			var muzzle = GetAttachment ( "muzzle" ) ?? default;
+			var pos = muzzle.Position;
+			var rot = muzzle.Rotation;
+			ShootEffects ();
+			PlaySound ( "rust_pistol.shoot" );
+			ShootBullet ( pos , rot.Forward , 0.05f , 1.5f , Rand.Int ( 30,60 ) , 3.0f );
+			ApplyAbsoluteImpulse ( rot.Backward * 500.0f );
+		}
+		protected override void OnPhysicsCollision ( CollisionEventData eventData )
+		{
+			if ( eventData.Speed > 500.0f ) Discharge ();
+		}
+	}
+}
