@@ -44,8 +44,6 @@ namespace aurora.core
 			}
 			ent.Position = tr.EndPos;
 			ent.Rotation = Rotation.From ( new Angles ( 0 , owner.EyeRot.Angles ().yaw , 0 ) );
-
-			//Log.Info( $"ent: {ent}" );
 		}
 	}
 }

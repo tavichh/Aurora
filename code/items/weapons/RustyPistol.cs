@@ -5,6 +5,8 @@ namespace aurora.items.weapons
 	[ Library ( "weapon_rust_pistol" , Title = "Rusty Pistol" , Spawnable = true ) ]
 	public partial class RustyPistol : Weapon
 	{
+		public override float DamageBase { get; set; } = 20.000f;
+		public override float DamageScalar { get; set; } = 12.500f;
 		public override string ViewModelPath => "weapons/rust_pistol/v_rust_pistol.vmdl";
 		public override float PrimaryRate => 15.0f;
 		public override float SecondaryRate => 1.0f;
@@ -23,7 +25,7 @@ namespace aurora.items.weapons
 			( Owner as AnimEntity )?.SetAnimBool ( "b_attack" , true );
 			ShootEffects ();
 			PlaySound ( "rust_pistol.shoot" );
-			ShootBullet ( 0.05f , 1.5f , Rand.Int ( 30,60 ) , 3.0f );
+			ShootBullet ( 0.05f , 1.5f , CalculateDamage () , 3.0f );
 		}
 		private void Discharge ( )
 		{
@@ -35,7 +37,7 @@ namespace aurora.items.weapons
 			var rot = muzzle.Rotation;
 			ShootEffects ();
 			PlaySound ( "rust_pistol.shoot" );
-			ShootBullet ( pos , rot.Forward , 0.05f , 1.5f , Rand.Int ( 30,60 ) , 3.0f );
+			ShootBullet ( pos , rot.Forward , 0.05f , 1.5f , CalculateDamage () , 3.0f );
 			ApplyAbsoluteImpulse ( rot.Backward * 500.0f );
 		}
 		protected override void OnPhysicsCollision ( CollisionEventData eventData )

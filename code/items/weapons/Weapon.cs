@@ -1,4 +1,5 @@
-﻿using aurora.inventory;
+﻿using System;
+using aurora.inventory;
 using Sandbox;
 namespace aurora.items.weapons
 {
@@ -6,15 +7,29 @@ namespace aurora.items.weapons
 	{
 		public virtual float ReloadTime => 3.0f;
 		public PickupTrigger PickupTrigger { get; protected set; }
-		[ Net , Predicted ]
-		public TimeSince TimeSinceReload { get; set; }
-		[ Net , Predicted ]
-		public bool IsReloading { get; set; }
-		[ Net , Predicted ]
-		public TimeSince TimeSinceDeployed { get; set; }
-
-		public virtual float DamageBase { get; set; }
-		public virtual float DamageScalar { get; set; }
+		[ Net , Predicted ] public TimeSince TimeSinceReload { get; set; }
+		[ Net , Predicted ] public bool IsReloading { get; set; }
+		[ Net , Predicted ] public TimeSince TimeSinceDeployed { get; set; }
+		 public virtual float DamageBase { get; set; }
+		 public virtual float DamageScalar { get; set; }
+		public bool OnUse ( Entity user )
+		{
+			if ( Owner != null )
+				return false;
+			if ( ! user.IsValid () )
+				return false;
+			user.StartTouch ( this );
+			return false;
+		}
+		public virtual bool IsUsable ( Entity user )
+		{
+			if ( Owner != null ) return false;
+			if ( user.Inventory is Inventory inventory )
+			{
+				return inventory.CanAdd ( this );
+			}
+			return true;
+		}
 		public override void Spawn ( )
 		{
 			base.Spawn ();
@@ -54,17 +69,8 @@ namespace aurora.items.weapons
 				OnReloadFinish ();
 			}
 		}
-		public virtual void OnReloadFinish ( )
-		{
-			IsReloading = false;
-		}
-		[ ClientRpc ]
-		public virtual void StartReloadEffects ( )
-		{
-			ViewModelEntity?.SetAnimBool ( "reload" , true );
-
-			// TODO - player third person model reload
-		}
+		public virtual void OnReloadFinish ( ) => IsReloading = false;
+		[ ClientRpc ] protected virtual void StartReloadEffects ( ) => ViewModelEntity?.SetAnimBool ( "reload" , true );
 		public override void CreateViewModel ( )
 		{
 			Host.AssertClient ();
@@ -78,31 +84,12 @@ namespace aurora.items.weapons
 			};
 			ViewModelEntity.SetModel ( ViewModelPath );
 		}
-		public bool OnUse ( Entity user )
-		{
-			if ( Owner != null )
-				return false;
-			if ( ! user.IsValid () )
-				return false;
-			user.StartTouch ( this );
-			return false;
-		}
-		public virtual bool IsUsable ( Entity user )
-		{
-			if ( Owner != null ) return false;
-			if ( user.Inventory is Inventory inventory )
-			{
-				return inventory.CanAdd ( this );
-			}
-			return true;
-		}
 		public void Remove ( )
 		{
 			PhysicsGroup?.Wake ();
 			Delete ();
 		}
-		[ ClientRpc ]
-		protected virtual void ShootEffects ( )
+		[ ClientRpc ] public virtual void ShootEffects ( )
 		{
 			Host.AssertClient ();
 			Particles.Create ( "particles/pistol_muzzleflash.vpcf" , EffectEntity , "muzzle" );
@@ -113,9 +100,6 @@ namespace aurora.items.weapons
 			ViewModelEntity?.SetAnimBool ( "fire" , true );
 			CrosshairPanel?.CreateEvent ( "fire" );
 		}
-		/// <summary>
-		/// Shoot a single bullet
-		/// </summary>
 		public virtual void ShootBullet ( Vector3 pos , Vector3 dir , float spread , float force , float damage , float bulletSize )
 		{
 			var forward = dir;
@@ -136,11 +120,13 @@ namespace aurora.items.weapons
 				}
 			}
 		}
-		/// <summary>
-		/// Shoot a single bullet from owners view point
-		/// </summary>
+		public virtual float CalculateDamage ( )
+		{
+			var n = Rand.Float ( - DamageScalar , DamageScalar );
+			return DamageBase + DamageScalar;
+		}
 		public virtual void ShootBullet ( float spread , float force , float damage , float bulletSize )
-		{	
+		{
 			ShootBullet ( Owner.EyePos , Owner.EyeRot.Forward , spread , force , damage , bulletSize );
 		}
 		/// <summary>
