@@ -2,6 +2,7 @@
 using Sandbox.UI;
 namespace aurora.ui
 {
+
 	public partial class AuroraHud : HudEntity < RootPanel >
 	{
 		public AuroraHud ( )
@@ -14,6 +15,7 @@ namespace aurora.ui
 			RootPanel.AddChild < VoiceList > ();
 			RootPanel.AddChild < KillFeed > ();
 			RootPanel.AddChild < Scoreboard < ScoreboardEntry > > ();
+			RootPanel.AddChild <Inventory>();
 		}
 	}
 }
