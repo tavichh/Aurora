@@ -1,5 +1,5 @@
 ﻿using System;
-using aurora.inventory;
+using aurora.equipment;
 using Sandbox;
 namespace aurora.items.weapons
 {
@@ -94,7 +94,7 @@ namespace aurora.items.weapons
 		public virtual bool IsUsable ( Entity user )
 		{
 			if ( Owner != null ) return false;
-			if ( user.Inventory is Inventory inventory )
+			if ( user.Inventory is Equipment inventory )
 			{
 				return inventory.CanAdd ( this );
 			}

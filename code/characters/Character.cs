@@ -1,4 +1,4 @@
-﻿using aurora.inventory;
+﻿using aurora.equipment;
 using aurora.items.weapons;
 using Sandbox;
 namespace aurora.characters
@@ -8,7 +8,7 @@ namespace aurora.characters
 		DamageInfo LastDamage;
 		static EntityLimit RagdollLimit = new EntityLimit { MaxTotal = 20 };
 		public readonly Wallet Wallet = new Wallet ();
-		public Character ( ) => Inventory = new Inventory ( this );
+		public Character ( ) => Inventory = new Equipment ( this );
 		public override void Respawn ( )
 		{
 			Log.Info ( "Checking if you are whitelisted to play..." );
