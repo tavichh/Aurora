@@ -11,7 +11,7 @@ namespace aurora.items.weapons
 		public override float PrimaryRate => 15.0f;
 		public override float SecondaryRate => 1.0f;
 		public override int ClipSize { get; set; } = 13;
-		public override int RoundsLeft { get; set; } = 13;
+		public override int RoundsLeft { get; set; }
 		private TimeSince TimeSinceDischarge { get; set; }
 		public override void Spawn ( )
 		{
@@ -32,7 +32,6 @@ namespace aurora.items.weapons
 				ShootBullet ( 0.05f , 1.5f , CalculateDamage () , 3.0f );
 				RoundsLeft -= 1;
 			}
-		
 		}
 		private void Discharge ( )
 		{
