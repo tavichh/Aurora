@@ -1,6 +1,6 @@
 # sbox-minimal
 
-![Screenshot](https://files.facepunch.com/garry/8fc638dc-2c62-4ed6-b20a-69c2c5342a9c.jpg)
+![Screenshot](https://i.imgur.com/5pQxuIK.jpeg)
 
  Minimal gamemode for s&box.
  
