@@ -6,26 +6,33 @@ namespace aurora.items.weapons
 	public partial class RustyPistol : Weapon
 	{
 		public override float DamageBase { get; set; } = 20.000f;
-		public override float DamageScalar { get; set; } = 12.500f;
+		public override float DamageOffset { get; set; } = 12.500f;
 		public override string ViewModelPath => "weapons/rust_pistol/v_rust_pistol.vmdl";
 		public override float PrimaryRate => 15.0f;
 		public override float SecondaryRate => 1.0f;
-		
+		public override int ClipSize { get; set; } = 13;
+		public override int RoundsLeft { get; set; } = 13;
 		private TimeSince TimeSinceDischarge { get; set; }
 		public override void Spawn ( )
 		{
 			base.Spawn ();
 			SetModel ( "weapons/rust_pistol/rust_pistol.vmdl" );
+
 		}
 		public override bool CanPrimaryAttack ( ) => base.CanPrimaryAttack () && Input.Pressed ( InputButton.Attack1 );
 		public override void AttackPrimary ( )
 		{
-			TimeSincePrimaryAttack = 0;
-			TimeSinceSecondaryAttack = 0;
-			( Owner as AnimEntity )?.SetAnimBool ( "b_attack" , true );
-			ShootEffects ();
-			PlaySound ( "rust_pistol.shoot" );
-			ShootBullet ( 0.05f , 1.5f , CalculateDamage () , 3.0f );
+			if ( RoundsLeft is not 0 )
+			{
+				TimeSincePrimaryAttack = 0;
+				TimeSinceSecondaryAttack = 0;
+				( Owner as AnimEntity )?.SetAnimBool ( "b_attack" , true );
+				ShootEffects ();
+				PlaySound ( "rust_pistol.shoot" );
+				ShootBullet ( 0.05f , 1.5f , CalculateDamage () , 3.0f );
+				RoundsLeft -= 1;
+			}
+		
 		}
 		private void Discharge ( )
 		{

@@ -22,9 +22,9 @@ namespace aurora.characters
 			EnableDrawing = true;
 			EnableHideInFirstPerson = true;
 			EnableShadowInFirstPerson = true;
-			Inventory.Add ( new RustyPistol () );
 			base.Respawn ();
 		}
+
 		public override void Simulate ( Client cl )
 		{
 			base.Simulate ( cl );
@@ -69,5 +69,6 @@ namespace aurora.characters
 			Corpse = ent;
 			RagdollLimit.Watch ( ent );
 		}
+		
 	}
 }

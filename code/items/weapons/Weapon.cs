@@ -7,29 +7,17 @@ namespace aurora.items.weapons
 	{
 		public virtual float ReloadTime => 3.0f;
 		public PickupTrigger PickupTrigger { get; protected set; }
-		[ Net , Predicted ] public TimeSince TimeSinceReload { get; set; }
-		[ Net , Predicted ] public bool IsReloading { get; set; }
-		[ Net , Predicted ] public TimeSince TimeSinceDeployed { get; set; }
-		 public virtual float DamageBase { get; set; }
-		 public virtual float DamageScalar { get; set; }
-		public bool OnUse ( Entity user )
-		{
-			if ( Owner != null )
-				return false;
-			if ( ! user.IsValid () )
-				return false;
-			user.StartTouch ( this );
-			return false;
-		}
-		public virtual bool IsUsable ( Entity user )
-		{
-			if ( Owner != null ) return false;
-			if ( user.Inventory is Inventory inventory )
-			{
-				return inventory.CanAdd ( this );
-			}
-			return true;
-		}
+		[ Net , Predicted ]
+		public TimeSince TimeSinceReload { get; set; }
+		[ Net , Predicted ]
+		public bool IsReloading { get; set; }
+		[ Net , Predicted ]
+		public TimeSince TimeSinceDeployed { get; set; }
+		public virtual float DamageBase { get; set; }
+		public virtual float DamageOffset { get; set; }
+		public virtual float CalculateDamage ( ) => Rand.Float ( - DamageOffset , + DamageOffset ) + DamageBase;
+		public virtual int ClipSize { get; set; }
+		public virtual int RoundsLeft { get; set; }
 		public override void Spawn ( )
 		{
 			base.Spawn ();
@@ -55,6 +43,7 @@ namespace aurora.items.weapons
 			IsReloading = true;
 			( Owner as AnimEntity )?.SetAnimBool ( "b_reload" , true );
 			StartReloadEffects ();
+			RoundsLeft = ClipSize;
 		}
 		public override void Simulate ( Client owner )
 		{
@@ -69,8 +58,17 @@ namespace aurora.items.weapons
 				OnReloadFinish ();
 			}
 		}
-		public virtual void OnReloadFinish ( ) => IsReloading = false;
-		[ ClientRpc ] protected virtual void StartReloadEffects ( ) => ViewModelEntity?.SetAnimBool ( "reload" , true );
+		public virtual void OnReloadFinish ( )
+		{
+			IsReloading = false;
+		}
+		[ ClientRpc ]
+		public virtual void StartReloadEffects ( )
+		{
+			ViewModelEntity?.SetAnimBool ( "reload" , true );
+
+			// TODO - player third person model reload
+		}
 		public override void CreateViewModel ( )
 		{
 			Host.AssertClient ();
@@ -84,12 +82,31 @@ namespace aurora.items.weapons
 			};
 			ViewModelEntity.SetModel ( ViewModelPath );
 		}
+		public bool OnUse ( Entity user )
+		{
+			if ( Owner != null )
+				return false;
+			if ( ! user.IsValid () )
+				return false;
+			user.StartTouch ( this );
+			return false;
+		}
+		public virtual bool IsUsable ( Entity user )
+		{
+			if ( Owner != null ) return false;
+			if ( user.Inventory is Inventory inventory )
+			{
+				return inventory.CanAdd ( this );
+			}
+			return true;
+		}
 		public void Remove ( )
 		{
 			PhysicsGroup?.Wake ();
 			Delete ();
 		}
-		[ ClientRpc ] public virtual void ShootEffects ( )
+		[ ClientRpc ]
+		protected virtual void ShootEffects ( )
 		{
 			Host.AssertClient ();
 			Particles.Create ( "particles/pistol_muzzleflash.vpcf" , EffectEntity , "muzzle" );
@@ -100,16 +117,28 @@ namespace aurora.items.weapons
 			ViewModelEntity?.SetAnimBool ( "fire" , true );
 			CrosshairPanel?.CreateEvent ( "fire" );
 		}
+		/// <summary>
+		/// Shoot a single bullet
+		/// </summary>
 		public virtual void ShootBullet ( Vector3 pos , Vector3 dir , float spread , float force , float damage , float bulletSize )
 		{
 			var forward = dir;
 			forward += ( Vector3.Random + Vector3.Random + Vector3.Random + Vector3.Random ) * spread * 0.25f;
 			forward = forward.Normal;
+
+			//
+			// ShootBullet is coded in a way where we can have bullets pass through shit
+			// or bounce off shit, in which case it'll return multiple results
+			//
 			foreach ( var tr in TraceBullet ( pos , pos + forward * 5000 , bulletSize ) )
 			{
 				tr.Surface.DoBulletImpact ( tr );
 				if ( ! IsServer ) continue;
 				if ( ! tr.Entity.IsValid () ) continue;
+
+				//
+				// We turn predictiuon off for this, so any exploding effects don't get culled etc
+				//
 				using ( Prediction.Off () )
 				{
 					var damageInfo = DamageInfo.FromBullet ( tr.EndPos , forward * 100 * force , damage )
@@ -120,11 +149,9 @@ namespace aurora.items.weapons
 				}
 			}
 		}
-		public virtual float CalculateDamage ( )
-		{
-			var n = Rand.Float ( - DamageScalar , DamageScalar );
-			return DamageBase + DamageScalar;
-		}
+		/// <summary>
+		/// Shoot a single bullet from owners view point
+		/// </summary>
 		public virtual void ShootBullet ( float spread , float force , float damage , float bulletSize )
 		{
 			ShootBullet ( Owner.EyePos , Owner.EyeRot.Forward , spread , force , damage , bulletSize );
