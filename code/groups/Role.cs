@@ -2,7 +2,7 @@
 {
 	public class Role
 	{
-		public Role (string title )
+		public Role (string title, float wage, int weight )
 		{
 			
 		}

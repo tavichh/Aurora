@@ -8,5 +8,6 @@ namespace aurora.groups
 		{
 			new Hereditary () ,
 		};
+		public static List < GroupBase > Groups = new List < GroupBase > ();
 	}
 }
